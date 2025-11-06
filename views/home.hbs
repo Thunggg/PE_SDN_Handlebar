@@ -1,5 +1,30 @@
 <div class="container py-4">
-  <h2 class="mb-3">Danh sách sản phẩm</h2>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Danh sách sản phẩm</h2>
+  </div>
+
+  <form method="GET" action="/home" class="row g-3 align-items-end mb-3">
+    <div class="col-12 col-md-4">
+      <label class="form-label">Danh mục</label>
+      <select name="category" class="form-select">
+        <option value="all" {{#if (eq selectedCategory "all" )}}selected{{/if}}>Tất cả</option>
+        {{#each categories}}
+        <option value="{{this}}" {{#if (eq ../selectedCategory this)}}selected{{/if}}>{{this}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Giá từ</label>
+      <input type="number" name="minPrice" class="form-control" placeholder="0" value="{{minPrice}}">
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Đến</label>
+      <input type="number" name="maxPrice" class="form-control" placeholder="" value="{{maxPrice}}">
+    </div>
+    <div class="col-12 col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary">Lọc</button>
+    </div>
+  </form>
   <div class="row g-3">
     {{#if products.length}}
     {{#each products}}

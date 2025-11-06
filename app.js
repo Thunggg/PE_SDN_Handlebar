@@ -25,6 +25,54 @@ app.engine(
     layoutsDir: path.join(__dirname, "views", "layouts"),
     partialsDir: path.join(__dirname, "views", "partials"),
     defaultLayout: "main",
+    helpers: {
+      eq: (a, b) => a === b,
+      gt: (a, b) => a > b,
+      lt: (a, b) => a < b,
+      gte: (a, b) => a >= b,
+      lte: (a, b) => a <= b,
+      ne: (a, b) => a !== b,
+      and: (a, b) => a && b,
+      or: (a, b) => a || b,
+      not: (a) => !a,
+      in: (a, b) => a.includes(b),
+      notIn: (a, b) => !a.includes(b),
+      contains: (a, b) => a.includes(b),
+      notContains: (a, b) => !a.includes(b),
+      startsWith: (a, b) => a.startsWith(b),
+      endsWith: (a, b) => a.endsWith(b),
+      includes: (a, b) => a.includes(b),
+      notIncludes: (a, b) => !a.includes(b),
+      isEmpty: (a) => a.length === 0,
+      isNotEmpty: (a) => a.length > 0,
+      isNull: (a) => a === null,
+      isNotNull: (a) => a !== null,
+      isUndefined: (a) => a === undefined,
+      isNotNull: (a) => a !== undefined,
+      isNullOrUndefined: (a) => a === null || a === undefined,
+      isNotNullOrUndefined: (a) => a !== null && a !== undefined,
+      isTrue: (a) => a === true,
+      isFalse: (a) => a === false,
+      isBoolean: (a) => typeof a === "boolean",
+      isNumber: (a) => typeof a === "number",
+      isString: (a) => typeof a === "string",
+      isArray: (a) => Array.isArray(a),
+      isObject: (a) => typeof a === "object" && a !== null,
+      isFunction: (a) => typeof a === "function",
+      isDate: (a) => a instanceof Date,
+      isRegExp: (a) => a instanceof RegExp,
+      isError: (a) => a instanceof Error,
+      isSymbol: (a) => typeof a === "symbol",
+      isBigInt: (a) => typeof a === "bigint",
+      isNullOrUndefined: (a) => a === null || a === undefined,
+      isNotNullOrUndefined: (a) => a !== null && a !== undefined,
+      isTrue: (a) => a === true,
+      isFalse: (a) => a === false,
+      isBoolean: (a) => typeof a === "boolean",
+      isNumber: (a) => typeof a === "number",
+      isString: (a) => typeof a === "string",       
+      formatPrice: (price) => price.toLocaleString("vi-VN", { style: "currency", currency: "VND" }),
+    },
   })
 ); // handlebars
 app.set("view engine", "hbs"); // handlebars
@@ -55,9 +103,32 @@ app.use(viewContext); // middleware dùng để lấy thông tin người dùng 
 ////////////////////////////////////////////////////////////// Web route to render a sample home page //////////////////////////////////////////////////////////////
 app.get("/home", async (req, res) => {
   try {
-    const products = await Product.find({}).lean();
-    console.log(products);
-    res.render("home", { title: "Trang chủ", products });
+    const { category, minPrice, maxPrice } = req.query;
+    const filter = {};
+
+    if (category && category !== "all") {
+      filter.category = category;
+    }
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice && !isNaN(Number(minPrice))) filter.price.$gte = Number(minPrice);
+      if (maxPrice && !isNaN(Number(maxPrice))) filter.price.$lte = Number(maxPrice);
+      if (Object.keys(filter.price).length === 0) delete filter.price;
+    }
+
+    const [categories, products] = await Promise.all([
+      Product.distinct("category"),
+      Product.find(filter).lean(),
+    ]);
+
+    res.render("home", {
+      title: "Trang chủ",
+      products,
+      categories,
+      selectedCategory: category || "all",
+      minPrice: minPrice || "",
+      maxPrice: maxPrice || "",
+    });
   } catch (err) {
     console.error(err);
     res.status(500).render("error", { message: "Lỗi server!" });
