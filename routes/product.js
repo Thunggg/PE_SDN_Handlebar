@@ -5,7 +5,7 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 
 // Tìm tất cả sản phẩm
-router.get("/", auth, adminOnly, async (req, res, next) => {
+router.get("/", auth, async (req, res, next) => {
   try {
     const products = await Product.find();
 
@@ -20,7 +20,7 @@ router.get("/", auth, adminOnly, async (req, res, next) => {
 });
 
 // Tìm sản phẩm theo id
-router.get("/:id", auth, adminOnly, async (req, res, next) => {
+router.get("/:id", auth, async (req, res, next) => {
   try {
     const products = await Product.findById(req.params.id);
     res.json({
