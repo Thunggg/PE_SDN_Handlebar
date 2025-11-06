@@ -23,6 +23,11 @@
         <li class="nav-item">
           <a class="nav-link" href="/orders">Đơn hàng</a>
         </li>
+        {{#if (and user (eq user.role "admin"))}}
+        <li class="nav-item">
+          <a class="nav-link" href="/admin">Admin</a>
+        </li>
+        {{/if}}
       </ul>
     </div>
   </div>

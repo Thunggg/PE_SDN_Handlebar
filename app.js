@@ -14,6 +14,7 @@ const connectDB = require("./config/db");
 const exphbs = require("express-handlebars"); // handlebars
 const path = require("path");
 const verifyToken = require("./middleware/auth");
+const adminOnly = require("./middleware/admin");
 const Product = require("./models/Product");
 const User = require("./models/User");
 const Order = require("./models/Order");
@@ -178,6 +179,11 @@ app.get("/cart", verifyToken, async (req, res) => {
     console.error(err);
     res.status(500).render("error", { message: "Lỗi server!" });
   }
+});
+
+// Render Admin dashboard (admin only)
+app.get("/admin", verifyToken, adminOnly, (req, res) => {
+  res.render("admin", { title: "Quản trị" });
 });
 
 // Render Orders history
