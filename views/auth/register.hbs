@@ -1,0 +1,125 @@
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3 text-center">Đăng ký</h1>
+
+                <div id="alert" class="alert d-none" role="alert"></div>
+
+                <form id="registerForm" novalidate>
+                    
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com"
+                            required>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-control" id="password" name="password" minlength="6"
+                            required>
+                        <div class="form-text">Tối thiểu 6 ký tự.</div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                        <label for="confirm" class="form-label">Nhập lại mật khẩu</label>
+                        <input type="password" class="form-control" id="confirm" name="confirm" minlength="6" required>
+                    </div>
+
+                    <!-- Select Role -->
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Vai trò</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="">-- Chọn vai trò --</option>
+                            <option value="user">Người dùng</option>
+                            <option value="admin">Quản trị viên</option>
+                        </select>
+                    </div>
+
+                    <!-- Radio Group: Gender -->
+                    <div class="mb-3">
+                        <label class="form-label d-block">Giới tính</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="gender" id="male" value="male" required>
+                            <label class="form-check-label" for="male">Nam</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="gender" id="female" value="female">
+                            <label class="form-check-label" for="female">Nữ</label>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary w-100" type="submit">Tạo tài khoản</button>
+                </form>
+            </div>
+        </div>
+        <p class="mt-3 text-center">
+            Đã có tài khoản? <a href="/login">Đăng nhập</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const form = document.querySelector('form');
+
+        // 🔹 Hàm hiện Toast
+        function showToast(message, type = 'primary') {
+            const toastEl = document.getElementById('toast');
+            const toastBody = document.getElementById('toastMessage');
+            toastBody.textContent = message;
+
+            // Đổi màu nền theo loại
+            toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+
+            const bsToast = new bootstrap.Toast(toastEl, { delay: 2500 });
+            bsToast.show();
+        }
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm').value;
+            const role = document.getElementById('role').value;
+            const gender = form.querySelector('input[name="gender"]:checked')?.value;
+
+            // Validation
+            if (!email || !password || !confirm || !role || !gender) {
+                showToast('Vui lòng điền đầy đủ thông tin.', 'warning');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('Mật khẩu tối thiểu 6 ký tự.', 'warning');
+                return;
+            }
+            if (password !== confirm) {
+                showToast('Mật khẩu nhập lại không khớp.', 'warning');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role, gender })
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = (data && (data.message || data.error)) || 'Đăng ký thất bại.';
+                    showToast(msg, 'danger'); // 🔹 Email tồn tại cũng sẽ hiển thị ở đây
+                    return;
+                }
+
+                showToast('Tạo tài khoản thành công! Đang chuyển hướng...', 'success');
+                setTimeout(() => window.location.href = '/', 1200);
+            } catch (err) {
+                showToast('Có lỗi xảy ra. Vui lòng thử lại.', 'danger');
+            }
+        });
+    })();
+</script>
