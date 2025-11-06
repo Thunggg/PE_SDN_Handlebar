@@ -175,8 +175,25 @@
             }
         });
 
-        document.getElementById('checkoutBtn')?.addEventListener('click', () => {
-            showToast('Chức năng thanh toán đang được phát triển.', 'info');
+        document.getElementById('checkoutBtn')?.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/orders/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = (data && (data.msg || data.message || data.error)) || 'Thanh toán thất bại.';
+                    return showToast(msg, 'danger');
+                }
+                // Success: clear UI and redirect with toast
+                sessionStorage.setItem('toastMessage', 'Đặt hàng thành công!');
+                sessionStorage.setItem('toastType', 'success');
+                window.location.href = '/home';
+            } catch (err) {
+                showToast('Có lỗi xảy ra khi thanh toán.', 'danger');
+            }
         });
     })();
 </script>
