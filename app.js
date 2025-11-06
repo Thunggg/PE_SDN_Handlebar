@@ -73,6 +73,16 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   res.render("auth/login", { title: "Đăng nhập" });
 });
+
+app.get("/product/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).lean();
+    res.render("product", { title: "Sản phẩm", product });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("error", { message: "Lỗi server!" });
+  }
+});
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.use("/api/products", productRoute);

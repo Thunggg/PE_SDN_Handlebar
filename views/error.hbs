@@ -1,0 +1,12 @@
+<div class="container py-5">
+    <div class="alert alert-danger" role="alert">
+        {{message}}
+    </div>
+    <a href="/home" class="btn btn-outline-secondary">Quay lại trang chủ</a>
+    <a href="/" class="btn btn-link">Trang chính</a>
+    <script>
+        if (!{{ #if message }}true{ {else } } false{ {/if } }) {
+            try { showToast('Đã xảy ra lỗi.', 'danger'); } catch (e) { }
+        }
+    </script>
+</div>
