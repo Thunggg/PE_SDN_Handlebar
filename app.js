@@ -60,6 +60,11 @@ app.get("/register", (req, res) => {
   res.render("auth/register", { title: "Đăng ký" });
 });
 
+// Render Login page
+app.get("/login", (req, res) => {
+  res.render("auth/login", { title: "Đăng nhập" });
+});
+
 app.use("/api/products", productRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/cart", cartRoute);

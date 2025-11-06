@@ -17,7 +17,22 @@
 
     {{> footer}}
 
+    {{> toast}}
+
     <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+      window.showToast = function(message, type = 'primary', delay = 2500) {
+        const toastEl = document.getElementById('toast');
+        const toastBody = document.getElementById('toastMessage');
+        if (!toastEl || !toastBody || !window.bootstrap) {
+          return alert(message);
+        }
+        toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+        toastBody.textContent = message;
+        const bsToast = new bootstrap.Toast(toastEl, { delay });
+        bsToast.show();
+      }
+    </script>
   </body>
   </html>
 

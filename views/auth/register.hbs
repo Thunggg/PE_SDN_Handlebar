@@ -7,7 +7,7 @@
                 <div id="alert" class="alert d-none" role="alert"></div>
 
                 <form id="registerForm" novalidate>
-                    
+
                     <!-- Email -->
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
@@ -109,14 +109,16 @@
                 });
 
                 const data = await res.json().catch(() => ({}));
+
                 if (!res.ok) {
                     const msg = (data && (data.message || data.error)) || 'Đăng ký thất bại.';
                     showToast(msg, 'danger'); // 🔹 Email tồn tại cũng sẽ hiển thị ở đây
                     return;
+                } else {
+                    sessionStorage.setItem('toastMessage', 'Đăng ký thành công! Hãy đăng nhập.');
+                    sessionStorage.setItem('toastType', 'success');
+                    window.location.href = '/login';
                 }
-
-                showToast('Tạo tài khoản thành công! Đang chuyển hướng...', 'success');
-                setTimeout(() => window.location.href = '/', 1200);
             } catch (err) {
                 showToast('Có lỗi xảy ra. Vui lòng thử lại.', 'danger');
             }

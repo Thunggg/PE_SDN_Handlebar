@@ -1,0 +1,72 @@
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3 text-center">Đăng nhập</h1>
+
+                <form id="loginForm" novalidate>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Đăng nhập</button>
+                </form>
+            </div>
+        </div>
+        <p class="mt-3 text-center">
+            Chưa có tài khoản? <a href="/register">Đăng ký</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('loginForm');
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                return showToast('Vui lòng nhập email và mật khẩu.', 'warning');
+            }
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = (data && (data.message || data.error)) || 'Đăng nhập thất bại.';
+                    return showToast(msg, 'danger');
+                } else {
+                    sessionStorage.setItem('toastMessage', 'Đăng nhập thành công! Hãy đăng nhập.');
+                    sessionStorage.setItem('toastType', 'success');
+                    window.location.href = '/home';
+                }
+
+            } catch (err) {
+                showToast('Có lỗi xảy ra. Vui lòng thử lại.', 'danger');
+            }
+        });
+    })();
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const message = sessionStorage.getItem('toastMessage');
+        const type = sessionStorage.getItem('toastType') || 'primary';
+        if (message) {
+            window.showToast(message, type);
+            sessionStorage.removeItem('toastMessage');
+            sessionStorage.removeItem('toastType');
+        }
+    });
+
+</script>

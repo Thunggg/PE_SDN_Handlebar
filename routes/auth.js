@@ -36,12 +36,12 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.json(400).json("Email không tồn tại!");
+      return res.status(400).json({ message: "Email không tồn tại!" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.json(400).json("Sai mật khẩu!");
+      return res.status(400).json({ message: "Sai mật khẩu!" });
     }
 
     const token = jwt.sign(
@@ -59,9 +59,7 @@ router.post("/login", async (req, res) => {
       maxAge: 2 * 60 * 60 * 1000,
     });
 
-    // res.json({ message: "Đăng nhập thành công!" });
-
-    res.redirect("/");
+    res.json({ message: "Đăng nhập thành công!" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
