@@ -15,6 +15,7 @@ const exphbs = require("express-handlebars"); // handlebars
 const path = require("path");
 const verifyToken = require("./middleware/auth");
 const Product = require("./models/Product");
+const User = require("./models/User");
 
 const app = express();
 
@@ -149,6 +150,26 @@ app.get("/product/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).lean();
     res.render("product", { title: "Sản phẩm", product });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("error", { message: "Lỗi server!" });
+  }
+});
+
+// Render Cart page
+app.get("/cart", verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate("cart.product").lean();
+    const items = (user?.cart || []).map((i) => ({
+      _id: i.product?._id,
+      name: i.product?.name,
+      price: i.product?.price || 0,
+      image: i.product?.image,
+      quantity: i.quantity,
+      subtotal: (i.product?.price || 0) * i.quantity,
+    }));
+    const total = items.reduce((sum, it) => sum + it.subtotal, 0);
+    res.render("cart", { title: "Giỏ hàng", items, total });
   } catch (err) {
     console.error(err);
     res.status(500).render("error", { message: "Lỗi server!" });

@@ -1,0 +1,182 @@
+<div class="container py-4">
+    <h2 class="mb-3">Giỏ hàng</h2>
+
+    {{#if items.length}}
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th style="width:72px;">Ảnh</th>
+                    <th>Sản phẩm</th>
+                    <th style="width:140px;" class="text-end">Đơn giá</th>
+                    <th style="width:160px;" class="text-center">Số lượng</th>
+                    <th style="width:160px;" class="text-end">Tạm tính</th>
+                    <th style="width:80px;"></th>
+                </tr>
+            </thead>
+            <tbody id="cartBody">
+                {{#each items}}
+                <tr data-id="{{_id}}">
+                    <td>
+                        {{#if image}}
+                        <img src="{{image}}" alt="{{name}}" class="rounded"
+                            style="width:56px; height:56px; object-fit: cover;">
+                        {{else}}
+                        <div class="bg-light border rounded d-flex align-items-center justify-content-center"
+                            style="width:56px; height:56px;">
+                            <span class="text-muted small">No</span>
+                        </div>
+                        {{/if}}
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{name}}</div>
+                    </td>
+                    <td class="text-end">{{price}}</td>
+                    <td class="text-center">
+                        <div class="input-group input-group-sm justify-content-center" style="max-width: 140px;">
+                            <button class="btn btn-outline-secondary btn-sm" data-action="dec">-</button>
+                            <input class="form-control text-center" style="max-width:80px;" value="{{quantity}}"
+                                data-role="qty" />
+                            <button class="btn btn-outline-secondary btn-sm" data-action="inc">+</button>
+                        </div>
+                    </td>
+                    <td class="text-end" data-role="subtotal">{{subtotal}}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger" data-action="remove">Xóa</button>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Tổng cộng</th>
+                    <th class="text-end" id="cartTotal">{{total}}</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a href="/home" class="btn btn-outline-secondary">Tiếp tục mua sắm</a>
+        <button class="btn btn-primary" id="checkoutBtn">Thanh toán</button>
+    </div>
+
+    {{else}}
+    <div class="alert alert-info">Giỏ hàng trống.</div>
+    <a href="/home" class="btn btn-primary">Mua sắm ngay</a>
+    {{/if}}
+</div>
+
+<script>
+    (function () {
+        const body = document.getElementById('cartBody');
+        const totalEl = document.getElementById('cartTotal');
+
+        function parseCurrency(text) { return Number(String(text).replace(/[^\d.-]/g, '')) || 0; }
+        function formatVND(n) { try { return (n || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }); } catch { return n; } }
+
+        async function callAdd(productId, delta) {
+            const res = await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ productId, quantity: delta })
+            });
+            if (!res.ok) throw new Error('Add failed');
+            return res.json();
+        }
+
+        async function callRemove(productId) {
+            const res = await fetch('/api/cart/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ productId })
+            });
+            if (!res.ok) throw new Error('Remove failed');
+            return res.json();
+        }
+
+        function recalcTotal() {
+            let sum = 0;
+            body?.querySelectorAll('tr').forEach(tr => {
+                const sub = tr.querySelector('[data-role="subtotal"]')?.textContent || '0';
+                sum += parseCurrency(sub);
+            });
+            totalEl.textContent = formatVND(sum);
+        }
+
+        body?.addEventListener('click', async (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const tr = btn.closest('tr');
+            const productId = tr?.dataset?.id;
+            const qtyInput = tr?.querySelector('[data-role="qty"]');
+            const priceCell = tr?.querySelector('td.text-end');
+            const subCell = tr?.querySelector('[data-role="subtotal"]');
+            const priceNum = parseCurrency(priceCell?.textContent);
+
+            try {
+                if (btn.dataset.action === 'inc') {
+                    await callAdd(productId, 1);
+                    const newQty = (parseInt(qtyInput.value || '1', 10) || 1) + 1;
+                    qtyInput.value = newQty;
+                    subCell.textContent = formatVND(newQty * priceNum);
+                    recalcTotal();
+                    return;
+                }
+                if (btn.dataset.action === 'dec') {
+                    const currQty = parseInt(qtyInput.value || '1', 10) || 1;
+                    if (currQty <= 1) {
+                        await callRemove(productId);
+                        tr.remove();
+                        recalcTotal();
+                        return;
+                    }
+                    await callAdd(productId, -1);
+                    const newQty = currQty - 1;
+                    qtyInput.value = newQty;
+                    subCell.textContent = formatVND(newQty * priceNum);
+                    recalcTotal();
+                    return;
+                }
+                if (btn.dataset.action === 'remove') {
+                    await callRemove(productId);
+                    tr.remove();
+                    recalcTotal();
+                    return;
+                }
+            } catch (err) {
+                showToast('Không thể cập nhật giỏ hàng.', 'danger');
+            }
+        });
+
+        body?.addEventListener('change', async (e) => {
+            const input = e.target.closest('[data-role="qty"]');
+            if (!input) return;
+            const tr = input.closest('tr');
+            const productId = tr?.dataset?.id;
+            const priceCell = tr?.querySelector('td.text-end');
+            const subCell = tr?.querySelector('[data-role="subtotal"]');
+            const priceNum = parseCurrency(priceCell?.textContent);
+            const currQty = parseInt(input.getAttribute('value') || '1', 10) || 1;
+            let newQty = Math.max(1, parseInt(input.value || '1', 10) || 1);
+            input.value = newQty;
+            const delta = newQty - currQty;
+            try {
+                if (delta > 0) await callAdd(productId, delta);
+                if (delta < 0) await callAdd(productId, delta); // giảm bớt
+                subCell.textContent = formatVND(newQty * priceNum);
+                input.setAttribute('value', String(newQty));
+                recalcTotal();
+            } catch (err) {
+                showToast('Không thể cập nhật số lượng.', 'danger');
+            }
+        });
+
+        document.getElementById('checkoutBtn')?.addEventListener('click', () => {
+            showToast('Chức năng thanh toán đang được phát triển.', 'info');
+        });
+    })();
+</script>
