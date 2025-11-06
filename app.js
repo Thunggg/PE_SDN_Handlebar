@@ -151,6 +151,14 @@ app.get("/login", (req, res) => {
   res.render("auth/login", { title: "Đăng nhập" });
 });
 
+// Logout: clear auth cookie and redirect
+app.get("/logout", (req, res) => {
+  try {
+    res.clearCookie("token");
+  } catch (e) {}
+  return res.redirect("/login");
+});
+
 app.get("/product/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).lean();

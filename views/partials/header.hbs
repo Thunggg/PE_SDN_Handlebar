@@ -28,6 +28,11 @@
           <a class="nav-link" href="/admin">Admin</a>
         </li>
         {{/if}}
+        {{#if user}}
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">Đăng xuất</a>
+        </li>
+        {{/if}}
       </ul>
     </div>
   </div>
