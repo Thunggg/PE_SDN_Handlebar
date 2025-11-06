@@ -16,6 +16,7 @@ const path = require("path");
 const verifyToken = require("./middleware/auth");
 const Product = require("./models/Product");
 const User = require("./models/User");
+const Order = require("./models/Order");
 
 const app = express();
 
@@ -73,6 +74,9 @@ app.engine(
       isNumber: (a) => typeof a === "number",
       isString: (a) => typeof a === "string",       
       formatPrice: (price) => price.toLocaleString("vi-VN", { style: "currency", currency: "VND" }),
+      formatDate: (d) => {
+        try { return new Date(d).toLocaleString("vi-VN"); } catch { return d; }
+      },
     },
   })
 ); // handlebars
@@ -170,6 +174,35 @@ app.get("/cart", verifyToken, async (req, res) => {
     }));
     const total = items.reduce((sum, it) => sum + it.subtotal, 0);
     res.render("cart", { title: "Giỏ hàng", items, total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("error", { message: "Lỗi server!" });
+  }
+});
+
+// Render Orders history
+app.get("/orders", verifyToken, async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user.id })
+      .populate("items.product")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const viewOrders = (orders || []).map((o) => ({
+      _id: o._id?.toString(),
+      createdAt: o.createdAt,
+      status: o.status,
+      total: o.total || 0,
+      items: (o.items || []).map((it) => ({
+        _id: it.product?._id,
+        name: it.product?.name,
+        price: it.product?.price || 0,
+        quantity: it.quantity,
+        subtotal: (it.product?.price || 0) * (it.quantity || 0),
+      })),
+    }));
+
+    res.render("orders", { title: "Đơn hàng của tôi", orders: viewOrders });
   } catch (err) {
     console.error(err);
     res.status(500).render("error", { message: "Lỗi server!" });
