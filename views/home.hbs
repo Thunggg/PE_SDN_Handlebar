@@ -1,13 +1,17 @@
-<div class="p-5 mb-4 bg-light rounded-3">
-  <div class="container-fluid py-5">
-    <h1 class="display-5 fw-bold">Xin chào!</h1>
-    <p class="col-md-8 fs-5 mt-3">
-      Đây là trang mẫu sử dụng Handlebars với Bootstrap layout.
-    </p>
-    <a href="/api/products" class="btn btn-primary btn-lg">Xem API sản phẩm</a>
+<div class="container py-4">
+  <h2 class="mb-3">Danh sách sản phẩm</h2>
+  <div class="row g-3">
+    {{#if products.length}}
+    {{#each products}}
+    {{> product-card}}
+    {{/each}}
+    {{else}}
+    <div class="col-12">
+      <div class="alert alert-info text-center">Chưa có sản phẩm.</div>
+    </div>
+    {{/if}}
   </div>
 </div>
-
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {

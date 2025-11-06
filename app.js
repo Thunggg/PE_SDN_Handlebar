@@ -13,6 +13,8 @@ const viewContext = require("./middleware/viewContext");
 const connectDB = require("./config/db");
 const exphbs = require("express-handlebars"); // handlebars
 const path = require("path");
+const verifyToken = require("./middleware/auth");
+const Product = require("./models/Product");
 
 const app = express();
 
@@ -50,9 +52,16 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(viewContext); // middleware dùng để lấy thông tin người dùng từ JWT cookie, và gắn nó vào res.locals
 
-// Web route to render a sample home page
-app.get("/home", (req, res) => {
-  res.render("home", { title: "Trang chủ" });
+////////////////////////////////////////////////////////////// Web route to render a sample home page //////////////////////////////////////////////////////////////
+app.get("/home", async (req, res) => {
+  try {
+    const products = await Product.find({}).lean();
+    console.log(products);
+    res.render("home", { title: "Trang chủ", products });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("error", { message: "Lỗi server!" });
+  }
 });
 
 // Render Register page
@@ -64,6 +73,7 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   res.render("auth/login", { title: "Đăng nhập" });
 });
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.use("/api/products", productRoute);
 app.use("/api/auth", authRoute);

@@ -1,39 +1,40 @@
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
-  </head>
-  <body class="d-flex flex-column min-vh-100">
-    {{> header}}
 
-    <main class="flex-grow-1 py-4">
-      <div class="container">
-        {{{body}}}
-      </div>
-    </main>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+</head>
 
-    {{> footer}}
+<body class="d-flex flex-column min-vh-100">
+  {{> header}}
 
-    {{> toast}}
+  <main class="flex-grow-1 py-4">
+    <div class="container">
+      {{{body}}}
+    </div>
+  </main>
 
-    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script>
-      window.showToast = function(message, type = 'primary', delay = 2500) {
-        const toastEl = document.getElementById('toast');
-        const toastBody = document.getElementById('toastMessage');
-        if (!toastEl || !toastBody || !window.bootstrap) {
-          return alert(message);
-        }
-        toastEl.className = `toast align-items-center text-bg-${type} border-0`;
-        toastBody.textContent = message;
-        const bsToast = new bootstrap.Toast(toastEl, { delay });
-        bsToast.show();
+  {{> footer}}
+
+  {{> toast}}
+
+  <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+    window.showToast = function (message, type = 'primary', delay = 2500) {
+      const toastEl = document.getElementById('toast');
+      const toastBody = document.getElementById('toastMessage');
+      if (!toastEl || !toastBody || !window.bootstrap) {
+        return alert(message);
       }
-    </script>
-  </body>
-  </html>
+      toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+      toastBody.textContent = message;
+      const bsToast = new bootstrap.Toast(toastEl, { delay });
+      bsToast.show();
+    }
+  </script>
+</body>
 
-
+</html>
